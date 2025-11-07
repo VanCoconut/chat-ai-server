@@ -1,18 +1,16 @@
-
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY, {
-    // necessario per i Workers
-    global: {
-        fetch,
-    },
-})
+export async function POST(request, env) {
+    console.log("SUPABASE_URL:", env.SUPABASE_URL)
+    console.log("SUPABASE_KEY:", env.SUPABASE_KEY)
 
-
-export async function POST(request) {
     try {
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY, {
+            global: { fetch },
+        })
+
         const body = await request.json()
-        console.log("Login request body:", body)   // 🔹 qui stampi username/password
+        console.log("Login request body:", body)   // 🔹 stampa username/password
 
         const { username, password } = body
 
@@ -30,6 +28,7 @@ export async function POST(request) {
 
         console.log("Login success:", data)       // 🔹 stampa utente trovato
         return new Response(JSON.stringify({ user: data }), { status: 200 })
+
     } catch (err) {
         console.log("Login exception:", err)
         return new Response(JSON.stringify({ error: err.message }), { status: 500 })

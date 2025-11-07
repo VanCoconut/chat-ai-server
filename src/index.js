@@ -12,7 +12,7 @@ function withCors(response) {
 }
 
 export default {
-	async fetch(request) {
+	async fetch(request, env) { // <-- aggiungi env qui
 		const url = new URL(request.url);
 
 		// Preflight CORS
@@ -30,11 +30,11 @@ export default {
 		let response;
 
 		if (url.pathname === "/register" && request.method === "POST") {
-			response = await register(request);
+			response = await register(request, env); // <-- passa env
 		} else if (url.pathname === "/login" && request.method === "POST") {
-			response = await login(request);
+			response = await login(request, env); // <-- passa env
 		} else if (url.pathname === "/chat" && request.method === "POST") {
-			response = await chat(request);
+			response = await chat(request, env); // <-- passa env
 		} else {
 			response = new Response("Not Found", { status: 404 });
 		}
@@ -42,3 +42,4 @@ export default {
 		return withCors(response);
 	},
 };
+

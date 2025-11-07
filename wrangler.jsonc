@@ -7,10 +7,9 @@
 	"name": "natura-ai-server",
 	"main": "src/index.js",
 	"vars": {
-		"GEMINI_API_KEY": "your-gemini-api-key",
-		"SUPABASE_URL": "https://your-supabase-url.supabase.co",
-		"SUPABASE_KEY": "your-supabase-anon-key"
+		"SUPABASE_URL": "https://gdupnkhuicozfkgqsaxq.supabase.co"
 	},
+	"account_id": "c2573b65ed0cc50f53dfe4a78d2312ef",
 	"compatibility_date": "2025-10-31",
 	"observability": {
 		"enabled": true
