@@ -1,4 +1,3 @@
-// src/index.js
 import { POST as register } from "./endpoints/register.js";
 import { POST as login } from "./endpoints/login.js";
 import { POST as chat } from "./endpoints/chat.js";
@@ -12,7 +11,7 @@ function withCors(response) {
 }
 
 export default {
-	async fetch(request, env) { // <-- aggiungi env qui
+	async fetch(request, env) {
 		const url = new URL(request.url);
 
 		// Preflight CORS
@@ -30,11 +29,11 @@ export default {
 		let response;
 
 		if (url.pathname === "/register" && request.method === "POST") {
-			response = await register(request, env); // <-- passa env
+			response = await register(request, env);
 		} else if (url.pathname === "/login" && request.method === "POST") {
-			response = await login(request, env); // <-- passa env
+			response = await login(request, env);
 		} else if (url.pathname === "/chat" && request.method === "POST") {
-			response = await chat(request, env); // <-- passa env
+			response = await chat(request, env);
 		} else {
 			response = new Response("Not Found", { status: 404 });
 		}
@@ -42,4 +41,3 @@ export default {
 		return withCors(response);
 	},
 };
-
