@@ -131,8 +131,10 @@ INSTRUCTIONS:
             // Prompt secondario per Gemini
             const followUpPrompt = `
 Ho ricevuto questa risposta dal tool: "${botReply}"
-Riformula in modo più chiaro e conciso per l'utente.
-                `;
+Rispondi con la migliore frase possibile nel modo più chiaro e conciso per l'utente.
+Ricorda queste informazioni poiché l'utente può chiedere di ulteriori approfondimenti partendo 
+dalle informazioni fornite qui: "${botReply}"
+            `;
 
             const refinedResp = await ai.models.generateContent({model: "gemini-2.5-flash", contents: followUpPrompt});
             return new Response(JSON.stringify({reply: refinedResp.text}), {
