@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import {GoogleGenAI} from "@google/genai";
 
 const MCP_URL = "https://mcp-ts-b-server.onrender.com/mcp";
 
@@ -8,7 +8,7 @@ async function callMcpTool(toolName, args, progressToken = 1) {
         jsonrpc: "2.0",
         id: Date.now(),
         method: "tools/call",
-        params: { name: toolName, arguments: args, _meta: { progressToken } }
+        params: {name: toolName, arguments: args, _meta: {progressToken}}
     };
 
     const res = await fetch(MCP_URL, {
@@ -45,10 +45,10 @@ async function callMcpTool(toolName, args, progressToken = 1) {
 // --- fetch lista tool disponibili ---
 // --- fetch lista tool disponibili ---
 async function getAvailableTools() {
-    const body = { jsonrpc: "2.0", id: Date.now(), method: "tools/list", params: {} };
+    const body = {jsonrpc: "2.0", id: Date.now(), method: "tools/list", params: {}};
     const res = await fetch(MCP_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json, text/event-stream" },
+        headers: {"Content-Type": "application/json", "Accept": "application/json, text/event-stream"},
         body: JSON.stringify(body)
     });
     const rawText = await res.text();
@@ -71,8 +71,8 @@ async function getAvailableTools() {
 // --- endpoint chat ---
 export async function POST(request, env) {
     try {
-        const { username, message } = await request.json();
-        const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
+        const {username, message} = await request.json();
+        const ai = new GoogleGenAI({apiKey: env.GEMINI_API_KEY});
 
         // --- recupera tool disponibili dal server MCP ---
         const availableTools = await getAvailableTools();
@@ -99,14 +99,16 @@ INSTRUCTIONS:
    {"tool": null, "need": ["prop1","prop2"], "question": "..."}
 4) If no tool is needed, respond: {"tool": null}
 5) ALWAYS produce valid JSON only.
-`;
+            `;
 
         // --- Gemini decide se usare un tool ---
-        const planResp = await ai.models.generateContent({ model: "gemini-2.5-flash", contents: planningPrompt });
+        const planResp = await ai.models.generateContent({model: "gemini-2.5-flash", contents: planningPrompt});
         let plan;
-        try { plan = JSON.parse(planResp.text); } catch { plan = { tool: null }; }
-
-        console.log("[DEBUG] Gemini plan:", plan);
+        try {
+            plan = JSON.parse(planResp.text);
+        } catch {
+            plan = {tool: null};
+        }
 
         // --- validazione lato Worker ---
         if (plan.tool) {
@@ -117,20 +119,40 @@ INSTRUCTIONS:
             const missing = required.filter(k => !(plan.args && Object.prototype.hasOwnProperty.call(plan.args, k)));
             if (missing.length > 0) {
                 const question = `Mi servono queste informazioni per eseguire ${plan.tool}: ${missing.join(", ")}. Puoi fornirle?`;
-                return new Response(JSON.stringify({ reply: question }), { status: 200, headers: {"Content-Type":"application/json"} });
+                return new Response(JSON.stringify({reply: question}), {
+                    status: 200,
+                    headers: {"Content-Type": "application/json"}
+                });
             }
 
             // --- chiama MCP se tutto ok ---
             const botReply = await callMcpTool(plan.tool, plan.args);
-            return new Response(JSON.stringify({ reply: botReply }), { status: 200, headers: {"Content-Type":"application/json"} });
+
+            // Prompt secondario per Gemini
+            const followUpPrompt = `
+Ho ricevuto questa risposta dal tool: "${botReply}"
+Riformula in modo più chiaro e conciso per l'utente.
+                `;
+
+            const refinedResp = await ai.models.generateContent({model: "gemini-2.5-flash", contents: followUpPrompt});
+            return new Response(JSON.stringify({reply: refinedResp.text}), {
+                status: 200,
+                headers: {"Content-Type": "application/json"}
+            });
         }
 
         // --- risposta normale del modello ---
-        const chatResp = await ai.models.generateContent({ model: "gemini-2.5-flash", contents: message });
-        return new Response(JSON.stringify({ reply: chatResp.text || "Mi dispiace, non ho capito." }), { status: 200, headers: {"Content-Type":"application/json"} });
+        const chatResp = await ai.models.generateContent({model: "gemini-2.5-flash", contents: message});
+        return new Response(JSON.stringify({reply: chatResp.text || "Mi dispiace, non ho capito."}), {
+            status: 200,
+            headers: {"Content-Type": "application/json"}
+        });
 
     } catch (err) {
         console.error("Gemini chat error:", err);
-        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: {"Content-Type":"application/json"} });
+        return new Response(JSON.stringify({error: err.message}), {
+            status: 500,
+            headers: {"Content-Type": "application/json"}
+        });
     }
 }
